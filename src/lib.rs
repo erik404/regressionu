@@ -1,7 +1,6 @@
 use serde_json;
 use serde_json::Value;
 
-#[derive(Debug)]
 pub struct RegressionDataSetTempEntry {
     price: f64,
     price_small: f64,
@@ -12,7 +11,6 @@ pub struct RegressionDataSetTempEntry {
     time_square: f64,
 }
 
-#[derive(Debug)]
 pub struct RegressionDatasetFullEntry {
     price: f64,
     price_small: f64,
