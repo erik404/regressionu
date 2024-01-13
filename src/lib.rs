@@ -1,39 +1,5 @@
-use log::info;
 use serde_json;
 use serde_json::Value;
-
-
-// /**
-// All values are cast to f64 due to calculations in regression formulas
-//  **/
-//
-// fn main() {
-//     let data_set_raw: Value = serde_json::from_str(r#"[{"price": "100", "timestamp": "0"},
-//                                                         {"price": "200", "timestamp": "10000"},
-//                                                         {"price": "300", "timestamp": "20000"},
-//                                                         {"price": "400", "timestamp": "30000"},
-//                                                         {"price": "500", "timestamp": "40000"},
-//                                                         {"price": "600", "timestamp": "50000"}]"#)
-//         .unwrap();
-//
-//     let data_set_raw_2: Value = serde_json::from_str(r#"[{"price": "700", "timestamp": "60000"},
-//                                                         {"price": "600", "timestamp": "70000"},
-//                                                         {"price": "500", "timestamp": "80000"},
-//                                                         {"price": "400", "timestamp": "90000"},
-//                                                         {"price": "300", "timestamp": "100000"},
-//                                                         {"price": "200", "timestamp": "110000"}]"#)
-//         .unwrap();
-//
-//     let test: Vec<RegressionDatasetFullEntry> = calculate_initial_regression(&data_set_raw);
-//     let updated_dataset = update_regression_dataset(test, &data_set_raw_2, 50001.0);
-//
-//
-//     for entry in updated_dataset.iter() {
-//         println!("{:?}", entry);
-//         println!("-------------------------------------")
-//     }
-//
-// }
 
 #[derive(Debug)]
 pub struct RegressionDataSetTempEntry {
@@ -131,7 +97,6 @@ pub fn update_regression_dataset(mut regression_dataset: Vec<RegressionDatasetFu
                 sum_time_square -= entry.time_square;
                 entry_to_be_deleted.push(usize);
             } else {
-                // break early, komt alleen voor in het begin.
                 break;
             }
         }
@@ -162,7 +127,7 @@ pub fn update_regression_dataset(mut regression_dataset: Vec<RegressionDatasetFu
         }
 
         if regression_b_half == 123456789.12 {
-            panic!("zou niet mogen");
+            panic!("ILLEGAL");
         }
 
         regression_dataset.push(
