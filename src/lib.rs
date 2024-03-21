@@ -1,7 +1,7 @@
 use serde_json;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PriceData {
     pub price: f64,
     pub timestamp: u64,
