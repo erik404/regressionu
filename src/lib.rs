@@ -1,11 +1,13 @@
 use serde_json;
 use serde_json::Value;
 
+#[derive(Clone, Debug)]
 pub struct PriceData {
     pub price: f64,
     pub timestamp: u64,
 }
 
+#[derive(Clone, Debug)]
 pub struct RegressionData {
     pub price: f64,
     pub price_small: f64,
