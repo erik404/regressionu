@@ -7,7 +7,7 @@ pub struct PriceData {
     pub timestamp: u64,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RegressionData {
     pub price: f64,
     pub price_small: f64,
