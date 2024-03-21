@@ -1,6 +1,11 @@
 use serde_json;
 use serde_json::Value;
 
+pub struct PriceData {
+    pub price: f64,
+    pub timestamp: u64,
+}
+
 pub struct RegressionDataSetTempEntry {
     price: f64,
     price_small: f64,
@@ -30,7 +35,7 @@ pub struct RegressionDatasetFullEntry {
     regression_b_half: f64,
 }
 
-pub fn calculate_initial_regression(price_dataset: &Value) -> Vec<RegressionDatasetFullEntry> {
+pub fn calculate_initial_regression(price_dataset: Vec<PriceData>) -> Vec<RegressionDatasetFullEntry> {
     let temp_dataset: Vec<RegressionDataSetTempEntry> = make_basic_regression_dataset(price_dataset, None);
     let mut dataset: Vec<RegressionDatasetFullEntry> = Vec::new();
 
@@ -76,7 +81,7 @@ pub fn calculate_initial_regression(price_dataset: &Value) -> Vec<RegressionData
     dataset
 }
 
-pub fn update_regression_dataset(mut regression_dataset: Vec<RegressionDatasetFullEntry>, price_dataset: &Value, regression_length_in_seconds: f64) -> Vec<RegressionDatasetFullEntry>{
+pub fn update_regression_dataset(mut regression_dataset: Vec<RegressionDatasetFullEntry>, price_dataset: Vec<PriceData>, regression_length_in_seconds: f64) -> Vec<RegressionDatasetFullEntry>{
     let temp_dataset: Vec<RegressionDataSetTempEntry> = make_basic_regression_dataset(price_dataset, Some(regression_dataset[regression_dataset.len() - 1].begin_timestamp));
 
     for i in 0..temp_dataset.len() {
@@ -154,52 +159,32 @@ pub fn update_regression_dataset(mut regression_dataset: Vec<RegressionDatasetFu
 }
 
 
-fn make_basic_regression_dataset(data_set_raw: &Value, begin_timestamp: Option<f64>) -> Vec<RegressionDataSetTempEntry> {
+fn make_basic_regression_dataset(price_dataset: Vec<PriceData>, begin_timestamp: Option<f64>) -> Vec<RegressionDataSetTempEntry> {
     let mut result: Vec<RegressionDataSetTempEntry> = Vec::new();
     let mut begin_timestamp: f64 = begin_timestamp.unwrap_or(-0.1);
-    if let Value::Array(data_array) = data_set_raw {
-        for element in data_array {
-            let price: f64 = get_price_as_f64(&element);
-            let timestamp: f64 = get_timestamp_as_f64(&element);
-            if begin_timestamp == -0.1 {
-                begin_timestamp = timestamp;
-            }
-            let price_small: f64 = price / 1000.0;
-            let timestamp_small: f64 = (timestamp - begin_timestamp) / 100000.0;
-            let time_value: f64 = timestamp_small * price_small;
-            let time_square: f64 = f64::powf(timestamp_small, 2.0);
-            result.push(RegressionDataSetTempEntry {
-                price,
-                price_small,
-                begin_timestamp,
-                timestamp,
-                timestamp_small,
-                time_value,
-                time_square,
-            });
+
+    for price_data in price_dataset {
+        let price: f64 = price_data.price;
+        let timestamp: f64 = price_data.timestamp as f64;
+        if begin_timestamp == -0.1 {
+            begin_timestamp = timestamp;
         }
+        let price_small: f64 = price / 1000.0;
+        let timestamp_small: f64 = (timestamp - begin_timestamp) / 100000.0;
+        let time_value: f64 = timestamp_small * price_small;
+        let time_square: f64 = f64::powf(timestamp_small, 2.0);
+        result.push(RegressionDataSetTempEntry {
+            price,
+            price_small,
+            begin_timestamp,
+            timestamp,
+            timestamp_small,
+            time_value,
+            time_square,
+        });
     }
+
     result
-}
-
-fn get_timestamp_as_f64(element: &Value) -> f64 {
-    let timestamp_str: &str = element["timestamp"].as_str().unwrap();
-    match timestamp_str.parse::<f64>() {
-        Ok(parsed_timestamp) => {
-            parsed_timestamp
-        }
-        _ => { panic!("error parsing timestamp from element") }
-    }
-}
-
-fn get_price_as_f64(element: &Value) -> f64 {
-    let price_str: &str = element["price"].as_str().unwrap();
-    match price_str.parse::<f64>() {
-        Ok(parsed_price) => {
-            parsed_price
-        }
-        _ => { panic!("error parsing price from element") }
-    }
 }
 
 fn calculate_regression_a(
