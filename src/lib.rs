@@ -89,6 +89,11 @@ pub fn calculate_initial_regression(price_dataset: Vec<PriceData>) -> Vec<Regres
 }
 // Function to update the previously calculated regression dataset with the newly arrived price data
 pub fn update_regression_dataset(mut regression_dataset: Vec<RegressionData>, price_dataset: Vec<PriceData>, regression_length: u64) -> Vec<RegressionData>{
+
+    if regression_dataset.len() == 0 {
+        panic!("regression_dataset holds no data");
+    }
+
     if regression_length < 3600000 {
         regression_dataset = check_regression_dataset_length(regression_dataset, regression_length);
     }
@@ -150,43 +155,42 @@ pub fn update_regression_dataset(mut regression_dataset: Vec<RegressionData>, pr
         // Check if the timestamp minus half the regression length is less than the current timestamp
         let check_timestamp: u64 = temp_dataset[i].timestamp - (0.5 * regression_length as f64) as u64;
         // Set the initial value of regression_b_half to a defined fake number
-        let mut regression_b_half: f64 = 123456789.12;
+        let mut regression_b_half: Option<f64> = None;
         // Loop through entries in the regression_dataset, each entry's regression_b is assigned to regression_b_half
         // The loop breaks when an entry's timestamp is greater than the check_timestamp
         for entry in regression_dataset.iter() {
-            regression_b_half = entry.regression_b;
+            regression_b_half = Some(entry.regression_b);
             if entry.timestamp > check_timestamp as u64 {
                 //break the loop if the condition is met
                 break;
             }
         }
 
-        // If regression_b_half is still equal to the initial value, it means no entry met the condition in the loop.
-        // Then it panics and stops the program.
-        if regression_b_half == 123456789.12 {
-            panic!("ILLEGAL");
+        match regression_b_half {
+            Some(value) => {
+                regression_dataset.push(
+                    RegressionData {
+                        price: temp_dataset[i].price,
+                        price_small: temp_dataset[i].price_small,
+                        begin_timestamp: current_begin_timestamp,
+                        timestamp: temp_dataset[i].timestamp,
+                        timestamp_small: temp_dataset[i].timestamp_small,
+                        time_value: temp_dataset[i].time_value,
+                        time_square: temp_dataset[i].time_square,
+                        sum_price_small,
+                        sum_time,
+                        sum_time_value,
+                        sum_time_square,
+                        regression_a,
+                        regression_b,
+                        regression_value,
+                        regression_a_abs,
+                        regression_b_half: value,
+                    }
+                )
+            },
+            None => panic!("regression_b_half could net be set"),
         }
-
-        regression_dataset.push(
-            RegressionData {
-                price: temp_dataset[i].price,
-                price_small: temp_dataset[i].price_small,
-                begin_timestamp: current_begin_timestamp,
-                timestamp: temp_dataset[i].timestamp,
-                timestamp_small: temp_dataset[i].timestamp_small,
-                time_value: temp_dataset[i].time_value,
-                time_square: temp_dataset[i].time_square,
-                sum_price_small,
-                sum_time,
-                sum_time_value,
-                sum_time_square,
-                regression_a,
-                regression_b,
-                regression_value,
-                regression_a_abs,
-                regression_b_half,
-            }
-        )
     }
 
     // Because it can happen that an hour is not complete we need to append the old data back to create a full dataset
